@@ -1,0 +1,6 @@
+# componentize-py build artifacts — rebuild with:
+#   cd ../../../etzhayyim-project-kotoba && \
+#     ./scripts/build-pywasm.sh ../etzhayyim-project-hakken/lg/wasm/agent.py \
+#       ../etzhayyim-project-hakken/lg/wasm/hakken-phase-promotion.wasm
+*.wasm
+__pycache__/

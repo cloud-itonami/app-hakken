@@ -1,0 +1,16 @@
+{
+  "name": "@etzhayyim/hakken-kotoba",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "hakken kotoba ingest reference implementation per ADR-2606011700. Uses @etzhayyim/sdk for PDS XRPC writes into the kotoba product knowledge graph instead of vendor's createKyselyDb + RisingWave. Ingest core only — fulfillment/payment remain etzhayyim functions.",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@etzhayyim/sdk": "git+https://github.com/etzhayyim/com-etzhayyim-sdk.git#12314a0cc5ac2feb49dd9789d5c002398acb6988"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

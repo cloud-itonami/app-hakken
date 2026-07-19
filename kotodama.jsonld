@@ -1,0 +1,86 @@
+{
+  "@context": "https://etzhayyim.com/ns/kotodama/v1",
+  "@id": "did:web:hakken.etzhayyim.com",
+  "name": "hakken",
+  "nanoid": "h4kk3n0x",
+  "displayName": "Hakken",
+  "description": "AI-First OEM product-discovery ingest surface. Scans branded-product price gaps and ingests OEM/supplier candidates (AliExpress / Alibaba / 1688) into the kotoba product knowledge graph as on-chain, content-addressed records. Ingest core only — phase fulfillment (dropship/import/OEM) and payment remain a documented etzhayyim-function dependency via consent capability. [AI Agent — unofficial, not affiliated with any tracked brand, marketplace, or supplier]",
+  "performerType": "service",
+  "runtimeType": "worker",
+  "tier": "T3",
+  "uiType": "appview",
+  "sensitivity": "public",
+  "source": "custom",
+  "version": "0.1.0",
+  "build": {
+    "guestLanguage": "ts"
+  },
+  "component": {
+    "path": "src/app.ts"
+  },
+  "routes": [
+    {
+      "host": "hakken.etzhayyim.com",
+      "paths": ["/"],
+      "tls": true
+    }
+  ],
+  "layer": "edge-dispatcher",
+  "atStandard": false,
+  "nsidPrefixes": ["com.etzhayyim.apps.hakken"],
+  "backendDependencies": {
+    "atproto": "https://atproto.etzhayyim.com",
+    "bpmnDispatcher": "https://dispatcher.etzhayyim.com",
+    "kotoba": "https://kotoba.etzhayyim.com",
+    "langgraphServer": "in-cluster: hakken-langgraph.murakumo.svc.cluster.local:8000"
+  },
+  "profile": {
+    "displayName": "Hakken",
+    "description": "AI-First OEM product-discovery ingest. Surfaces branded-product price gaps and ingests supplier candidates into the kotoba product knowledge graph (on-chain, content-addressed). Operated as an etzhayyim religious-corp non-profit product-discovery surface.",
+    "avatar": "発",
+    "category": "commerce",
+    "operator": "etzhayyim",
+    "isBot": true,
+    "agentType": "autonomous"
+  },
+  "governance": {
+    "raci": "responsible",
+    "classification": "public",
+    "tlp": "WHITE"
+  },
+  "convoSystemPrompt": "You are the Hakken agent for the etzhayyim religious-corp. You discover OEM product opportunities by comparing branded-product prices against supplier-candidate listings, and ingest the findings into the kotoba product knowledge graph as on-chain content-addressed records. You do not take payment, hold custody, or fulfil orders — those regulated functions are delegated to the etzhayyim vendor function via consent capability. Respond helpfully in the user's language.",
+  "duties": ["勤労の義務"],
+  "kpi": ["product-gap coverage of target categories", "supplier-candidate ingest freshness"],
+  "space": {
+    "name": "Hakken — Product Discovery Ingest",
+    "joinRule": "public",
+    "historyVisibility": "world-readable",
+    "channels": [
+      {
+        "name": "hakken-feed",
+        "kind": "public",
+        "default": true
+      }
+    ]
+  },
+  "triggers": {
+    "subscribeRepos": {
+      "collections": [
+        "com.etzhayyim.apps.hakken.brandedProduct",
+        "com.etzhayyim.apps.hakken.supplierCandidate"
+      ]
+    }
+  },
+  "ui": {
+    "accent": "#1f6f4a",
+    "icon": "🔍"
+  },
+  "adr": [
+    "2606011700",
+    "2606011400",
+    "2605172000",
+    "2605172400",
+    "2605202800",
+    "2605270000"
+  ]
+}

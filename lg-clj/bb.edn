@@ -1,0 +1,19 @@
+{;; lg-hakken — clj-native port of the Python LangGraph ingest pipeline
+ ;; (ADR-2606280030: langgraph-python → langgraph-clj). Scoped to THIS app only
+ ;; (does NOT touch the repo-root bb.edn). Pins match the wave-1 twins
+ ;; (etzhayyim-project-recap/lg-clj) byte-for-byte.
+ ;;
+ ;;   src   — lg-hakken.* namespaces (edn, kotoba-datomic, nodes, graphs, server)
+ ;;   test  — lg-hakken.edn-and-cid-test + lg-hakken.graph-test (clojure.test)
+ ;;
+ ;; Run the suite:  bb test   (or:  bb run_tests.clj)
+ :paths ["src" "test"]
+ :deps {com-junkawasaki/langchain-clj
+        {:git/url "https://github.com/com-junkawasaki/langchain-clj"
+         :git/sha "2b03859c3ee722b64f3eddd0b615a54019b17c81"}
+        com-junkawasaki/langgraph-clj
+        {:git/url "https://github.com/com-junkawasaki/langgraph-clj"
+         :git/sha "c7daa07d4e50f55d7e2a02e4b89dbeb2b200961d"}}
+ :tasks
+ {test {:doc "Run the clojure.test suite under bb."
+        :task (load-file "run_tests.clj")}}}

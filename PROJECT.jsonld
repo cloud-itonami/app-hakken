@@ -1,0 +1,44 @@
+{
+  "@context": {
+    "prov": "http://www.w3.org/ns/prov#",
+    "dct": "http://purl.org/dc/terms/",
+    "etzhayyim": "https://etzhayyim.com/schema#",
+    "name": "dct:title",
+    "description": "dct:description",
+    "status": "etzhayyim:status"
+  },
+  "@id": "https://etzhayyim.com/projects/etzhayyim-project-hakken",
+  "@type": "prov:Entity",
+  "name": "Hakken — AI-First OEM Product Discovery Ingest (etzhayyim)",
+  "description": "Product-discovery ingest surface. Compares branded-product prices against OEM/supplier candidate listings (AliExpress / Alibaba / 1688) and ingests both into the kotoba product knowledge graph as on-chain, content-addressed records. Migrated to etzhayyim under a non-profit product-discovery premise, overriding the same-day vendor-keep verdict of ADR-2606011400 (Consensys pattern) per explicit user direction 2026-06-01.",
+  "etzhayyim:category": "etzhayyim-project-hakken",
+  "etzhayyim:appId": "hakken",
+  "status": "Phase 1 — etzhayyim scaffold + ingest-core kotoba (override of ADR-2606011400 vendor-keep, user-directed 2026-06-01)",
+  "prov:wasGeneratedBy": {
+    "@type": "prov:Activity",
+    "name": "hakken etzhayyim migration — ADR-2606011400 override",
+    "prov:startedAtTime": "2026-06-01T00:00:00Z"
+  },
+  "etzhayyim:milestones": [
+    {
+      "name": "Phase 1 — etzhayyim scaffold + ingest-core kotoba (this commit)",
+      "status": "In Progress",
+      "description": "CLAUDE.md + OWNERS + PROJECT.jsonld + kotodama.jsonld + 4 com.etzhayyim.apps.hakken.* lexicons + kotoba ingest reference (brandedProduct + supplierCandidate write path via @etzhayyim/sdk e.write). Vendor hakken.etzhayyim.com unchanged. ADR-2606011700."
+    },
+    {
+      "name": "Phase 2 — discovery pipeline rehome (trend_scan / gap_analysis / supplier_search)",
+      "status": "Planned",
+      "description": "Port the LangGraph discovery nodes (trend_scan, gap_analysis kotoba Datalog, supplier_search AliExpress/1688 scrape, quality_eval) to the etzhayyim Murakumo fleet, writing through the kotoba ingest surface. No RisingWave; kotoba product KG only."
+    },
+    {
+      "name": "Phase 3 — phase fulfillment via etzhayyim consent capability",
+      "status": "Deferred",
+      "description": "okaimono_register (Ph1 dropship), import_order (Ph2 Alibaba small-lot), tsukuru_order (Ph3 OEM) and Stripe product creation HIT the Settlement + Custody axes and remain etzhayyim vendor functions per ADR-2606011400. etzhayyim hakken consumes them through consent capability rather than re-implementing payment/fulfillment. On-chain alternative (escrow-intent, mirroring tsukuru Phase 2) is a later option."
+    },
+    {
+      "name": "Phase 4 — vendor sunset",
+      "status": "Planned",
+      "description": "After etzhayyim ingest proves stable, vendor 60-apps/etzhayyim-project-hakken/ discovery nodes git rm'd; vendor retains only the regulated fulfillment/payment functions hakken consumes via capability."
+    }
+  ]
+}
