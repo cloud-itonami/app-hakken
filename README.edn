@@ -1,1 +1,6 @@
-{:schema "etzhayyim.repository/v1" :name "com-etzhayyim-app-hakken" :kind :app :canonical-metadata :edn}
+{:schema "etzhayyim.repository/v1"
+ :name "app-hakken"
+ :kind :app
+ :canonical-metadata :edn
+ :boundary {:role :product-discovery-application
+            :business-layer "cloud-itonami/hakken"}}
