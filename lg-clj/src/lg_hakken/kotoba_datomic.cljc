@@ -24,6 +24,66 @@
                      :bearer ""
                      :graph-label "kotobase-kg-v1"})
 
+;; ── internal-trust header (ADR-2608124000) ────────────────────────────────────
+;; kotoba-server's `require_internal_trust` gate compares this header against its
+;; own KOTOBA_INTERNAL_SECRET. That variable is unset across the murakumo fleet,
+;; so the gate returns success and the header is never read — sending it TODAY is
+;; a complete no-op. That is precisely why it is safe to ship now: every caller
+;; must demonstrably send it BEFORE the server side can be armed, and arming the
+;; server first would break every caller at once.
+;;
+;; We read the SAME variable name the server and the Cloudflare gateway read, so
+;; arming the fleet later is one variable rather than one per actor. The value is
+;; only ever read from the environment — never minted, never defaulted.
+;;
+;; When it is unconfigured we OMIT the header, but never SILENTLY: a one-shot
+;; stderr warning fires on the live path, and `internal-trust-status` exposes the
+;; same fact as a value a fleet sweep can read, instead of as a log line nobody
+;; reads.
+;; Silent omission is the shape that let an unauthenticated
+;; fleet look healthy in the first place.
+;;
+;; The value may also be supplied explicitly as `:internal-trust` in the config
+;; map (this namespace already takes its url/bearer that way); the environment is
+;; only the fallback. `resolve-internal-trust` is the one place that decides.
+(def internal-trust-header "x-internal-trust")
+(def internal-trust-env "KOTOBA_INTERNAL_SECRET")
+
+#?(:clj
+   (defn internal-trust
+     "The configured internal-trust secret, or nil when unset/blank. Environment
+     only — this function never mints or defaults a value."
+     []
+     (let [v (System/getenv internal-trust-env)]
+       (when-not (str/blank? v) v))))
+
+#?(:clj (def ^:private internal-trust-warned? (atom false)))
+
+#?(:clj
+   (defn internal-trust-status
+     "`:configured` | `:unconfigured` — the machine-readable half of the warning."
+     []
+     (if (internal-trust) :configured :unconfigured)))
+
+#?(:clj
+   (defn warn-unconfigured-internal-trust!
+     "Announce ONCE per process that this push carries no internal-trust header."
+     []
+     (when (compare-and-set! internal-trust-warned? false true)
+       (binding [*out* *err*]
+         (println (str "WARN lg-hakken.kotoba-datomic: " internal-trust-env " is unset — requests carry NO "
+                       internal-trust-header " header. Harmless while kotoba-server's"
+                       " require_internal_trust gate is disabled fleet-wide"
+                       " (ADR-2608124000); it becomes a hard rejection the moment"
+                       " that gate is armed."))))))
+
+(defn resolve-internal-trust
+  "The internal-trust secret for a call: an explicit `:internal-trust` in the
+   config map wins, otherwise the environment. nil when neither is set."
+  [config]
+  (let [explicit (:internal-trust config)]
+    (if-not (str/blank? explicit) explicit (internal-trust))))
+
 ;; ── Graph CID derivation ────────────────────────────────────────────────────
 ;; kotoba's Datomic API requires `graph` to be a real CIDv1 multibase string,
 ;; not a human-readable label. Hash the label client-side so the same label
@@ -116,14 +176,17 @@
 
 (defn xrpc-post-with
   "POST through an explicit HTTP capability and host configuration."
-  [http-post {:keys [url bearer]} nsid body]
+  [http-post {:keys [url bearer] :as config} nsid body]
   (when-not (fn? http-post)
     (throw (ex-info "Hakken Kotoba requires an explicit HTTP POST capability"
                     {:capability :hakken/kotoba-http-post})))
   (assert-kotoba-url url)
-  (let [resp (http-post (str (str/replace (str url) #"/+$" "") "/xrpc/" nsid)
+  (let [trust (resolve-internal-trust config)
+        _ (when-not trust (warn-unconfigured-internal-trust!))
+        resp (http-post (str (str/replace (str url) #"/+$" "") "/xrpc/" nsid)
                    {:headers (cond-> {"Content-Type" "application/json"}
-                               (seq bearer) (assoc "Authorization" (str "Bearer " bearer)))
+                               (seq bearer) (assoc "Authorization" (str "Bearer " bearer))
+                               trust (assoc internal-trust-header trust))
                     :timeout 60000
                     :throw false
                     :body (json/generate-string body)})]
