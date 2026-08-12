@@ -192,3 +192,70 @@
     (is (str/ends-with? (first @seen) "/xrpc/com.etzhayyim.apps.kotoba.datomic.transact"))
     (is (= "Bearer secret" (get-in @seen [1 :headers "Authorization"])))
     (is (re-find #"tx_edn" (get-in @seen [1 :body])))))
+
+;; ── internal-trust header (ADR-2608124000, "clients first") ──────────────────
+;; kotoba-server's require_internal_trust gate returns success while
+;; KOTOBA_INTERNAL_SECRET is unset, and it is unset across the fleet — so sending
+;; this header today changes nothing on the wire. These tests pin the shape NOW
+;; so that arming the server later is a one-variable decision rather than a
+;; fleet-wide outage. Values are obviously synthetic; no real secret is used.
+(def ^:private synthetic-trust "synthetic-internal-trust-not-a-real-secret")
+
+(defn- capture
+  "Run xrpc-post-with through a stub http-post, returning the headers sent."
+  [config]
+  (let [seen (atom nil)]
+    (kd/xrpc-post-with (fn [_url req] (reset! seen (:headers req))
+                         {:status 200 :body "{}"})
+                       config "com.example.nsid" {})
+    @seen))
+
+(deftest internal-trust-header-present-when-configured
+  ;; explicit config value
+  (let [h (capture {:url "https://kotoba.etzhayyim.com" :bearer "synthetic-bearer"
+                    :internal-trust synthetic-trust})]
+    (is (= synthetic-trust (get h "x-internal-trust")))
+    ;; positive control — pre-existing headers untouched
+    (is (= "Bearer synthetic-bearer" (get h "Authorization")))
+    (is (= "application/json" (get h "Content-Type"))))
+  ;; environment fallback
+  (with-redefs [kd/internal-trust (constantly synthetic-trust)]
+    (is (= synthetic-trust
+           (get (capture {:url "https://kotoba.etzhayyim.com" :bearer ""})
+                "x-internal-trust")))))
+
+(deftest internal-trust-header-absent-when-unconfigured
+  (with-redefs [kd/internal-trust (constantly nil)]
+    (let [h (capture {:url "https://kotoba.etzhayyim.com" :bearer "synthetic-bearer"})]
+      (is (not (contains? h "x-internal-trust"))
+          "omitted entirely — never sent as an empty string")
+      ;; positive control — omitting trust must not disturb anything else
+      (is (= "Bearer synthetic-bearer" (get h "Authorization")))
+      (is (= "application/json" (get h "Content-Type"))))
+    ;; the no-op property: with no secret and no bearer the map is exactly what
+    ;; this code has always produced
+    (is (= {"Content-Type" "application/json"}
+           (capture {:url "https://kotoba.etzhayyim.com" :bearer ""})))
+    ;; a blank explicit value is absent, not an empty header
+    (is (not (contains? (capture {:url "https://kotoba.etzhayyim.com" :bearer ""
+                                  :internal-trust "  "})
+                        "x-internal-trust")))))
+
+(deftest internal-trust-absence-is-reported-not-silent
+  (is (= "x-internal-trust" kd/internal-trust-header))
+  (is (= "KOTOBA_INTERNAL_SECRET" kd/internal-trust-env)
+      "the same variable the server and the Cloudflare gateway read")
+  (with-redefs [kd/internal-trust (constantly nil)]
+    (is (= :unconfigured (kd/internal-trust-status)))
+    (is (nil? (kd/resolve-internal-trust {}))))
+  (with-redefs [kd/internal-trust (constantly synthetic-trust)]
+    (is (= :configured (kd/internal-trust-status))))
+  ;; explicit config wins over the environment
+  (with-redefs [kd/internal-trust (constantly "from-env")]
+    (is (= "from-config" (kd/resolve-internal-trust {:internal-trust "from-config"})))))
+
+(deftest allowlist-still-enforced-alongside-internal-trust
+  ;; positive control — a configured secret is not an allowlist bypass
+  (is (thrown? clojure.lang.ExceptionInfo
+               (capture {:url "https://evil.example.com" :bearer ""
+                         :internal-trust synthetic-trust}))))
