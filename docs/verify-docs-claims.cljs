@@ -1,0 +1,153 @@
+#!/usr/bin/env nbb
+;; verify-docs-claims.cljs — README.md が事実として述べていることを検査する
+;;
+;;   nbb docs/verify-docs-claims.cljs
+;;
+;; exit 0 = PASS / 1 = FAIL / 3 = 判定できなかった（0 でも 1 でもない）
+;;
+;; ── なぜこれが要るか ──────────────────────────────────────────────────────
+;;
+;; この repo の README.md は「何が無いか」を大量に述べている —— top-level `src/`
+;; が無い（`kotodama.jsonld` の `component.path` が指す先）、lexicon が 1 本も
+;; 無い（`PROJECT.jsonld` が Phase 1 で 4 本納品したと書いている）、port 元だと
+;; 名指しされた Python 3 本が無い。**不在の主張は、実装が進んだ瞬間に静かに
+;; 嘘になる。** この repo では `CLAUDE.md` と `PROJECT.jsonld` と
+;; `kotodama.jsonld` がまさにそうなった —— 抽出前の monorepo を前提に書かれた
+;; まま、指す先が消えても誰も赤くならなかった。README.md を同じ道に行かせない
+;; ための検査。
+;;
+;; したがって **この検査が赤くなるのは、多くの場合バグではなく前進である。**
+;; 赤くなったら実装を戻すのではなく README.md を直す。
+;;
+;; ── 「測れなかった」を「問題なし」と同じ値で返さない ──────────────────────
+;;
+;; 読めなかったファイルを「その文字列は入っていなかった」と数えると、検査は
+;; 静かに緑になる。ここでは読めない対象は必ず exit 3 で終わる。走査した
+;; tracked file が 0 件のときも 3（証拠の床）。SCANNED 行は「飛ばした」と
+;; 「合格した」を出力で区別するために常に印字する。
+;;
+;; ⚠ DNS は検査しない。README.md は `hakken.etzhayyim.com` が NXDOMAIN だと
+;;   書いているが、それは **network の状態であって repo の状態ではない** ——
+;;   offline で走らせた検査が「引けなかった」を「無い」と読めば、この検査自身が
+;;   沈黙を緑にする側に回る。DNS は quickstart に手順として置き、人が引く。
+
+(require '["node:child_process" :as cp]
+         '["node:fs" :as fs]
+         '[clojure.string :as str])
+
+(defn- die! [code & msg]
+  (binding [*print-fn* *print-err-fn*] (apply println msg))
+  (js/process.exit code))
+
+(defn- git [& args]
+  (try
+    (str/trim (str (cp/execFileSync "git" (clj->js (vec args)) #js {:encoding "utf8"})))
+    (catch :default e
+      (die! 3 "UNDETERMINED: git" (str/join " " args) "が失敗した —"
+            (or (some-> e .-message) "(理由不明)")))))
+
+(defn- read-tracked
+  "tracked なファイルの中身。tracked でない / 実体が無いなら 3 で終わる。
+   `nil` を返して呼び出し側に「無かった＝合格」と読ませない。"
+  [tracked-set p]
+  (when-not (contains? tracked-set p)
+    (die! 3 "UNDETERMINED:" p "が tracked でない。README.md がこのファイルを前提に"
+          "書かれているので、消えたのなら README.md ごと見直すこと"))
+  (when-not (fs/existsSync p)
+    (die! 3 "UNDETERMINED: tracked なのに実体が無い:" p))
+  (try (fs/readFileSync p "utf8")
+       (catch :default e
+         (die! 3 "UNDETERMINED:" p "が読めない —" (or (some-> e .-message) "")))))
+
+(defn- bytes-of [tracked-set ps]
+  (reduce + 0 (map (fn [p]
+                     (when-not (contains? tracked-set p)
+                       (die! 3 "UNDETERMINED:" p "が tracked でない（byte 数を検査できない）"))
+                     (when-not (fs/existsSync p)
+                       (die! 3 "UNDETERMINED: tracked なのに実体が無い:" p))
+                     (.-size (fs/statSync p)))
+                   ps)))
+
+;; ── 走査対象 ──────────────────────────────────────────────────────────────
+
+(when-not (fs/existsSync "README.md")
+  (die! 3 "UNDETERMINED: README.md が無い。この repo のルートで実行すること"))
+
+(def ^:private tracked
+  (vec (remove str/blank? (str/split-lines (git "ls-files")))))
+
+;; 証拠の床。0 件を「違反 0 件 = 合格」にしない。
+(when (zero? (count tracked))
+  (die! 3 "UNDETERMINED: git ls-files が空。commit の無い repo か、"
+        "ルート以外で実行したか"))
+
+(def ^:private tracked-set (set tracked))
+
+(defn- matching [re] (filterv #(re-find re %) tracked))
+
+(def ^:private src-cljc  (matching #"^lg-clj/src/.*\.cljc$"))
+(def ^:private test-cljc (matching #"^lg-clj/test/.*\.cljc$"))
+
+;; port 元だと lg-clj 自身が名指しする Python。README.md はこれが無いと書く。
+(def ^:private cited-originals
+  ["lg/lg_hakken/graph.py" "lg/lg_hakken/edn.py" "lg/lg_hakken/kotoba_datomic.py"])
+
+;; CLAUDE.md が「この surface の外」と書き、graph.cljc が build-discovery に
+;; 配線している 5 ノード。README.md の矛盾の主張はこの 5 本に依存している。
+(def ^:private tail-nodes
+  ["okaimono_dropship" "import_order" "tsukuru_order" "okaimono_register" "social_announce"])
+
+(def ^:private graph-src (read-tracked tracked-set "lg-clj/src/lg_hakken/graph.cljc"))
+
+(def ^:private deftest-n
+  (reduce + 0 (map #(count (re-seq #"\(deftest " (read-tracked tracked-set %))) test-cljc)))
+
+;; ── 主張 ──────────────────────────────────────────────────────────────────
+;;
+;; :want は README.md に書いてある値。ここを書き換えるときは README.md も
+;; 一緒に書き換わっていなければ意味が無い。
+
+(def ^:private checks
+  [{:what "top-level src/ が無い（kotodama.jsonld の component.path \"src/app.ts\" が指す先）"
+    :got (matching #"^src/") :want []}
+   {:what "lexicon が 1 本も無い（PROJECT.jsonld は Phase 1 で 4 本納品したと書く）"
+    :got (matching #"(?i)lexicon") :want []}
+   {:what "port 元だと名指しされた Python 3 本が無い"
+    :got (vec (filter tracked-set cited-originals)) :want []}
+   {:what "lg-clj/src の .cljc 本数（README.md の表）"
+    :got (count src-cljc) :want 16}
+   {:what "lg-clj/test の .cljc 本数（README.md の表）"
+    :got (count test-cljc) :want 2}
+   {:what "lg-clj/src の byte 数（README.md の表）"
+    :got (bytes-of tracked-set src-cljc) :want 48414}
+   {:what "lg-clj/test の byte 数（README.md の表）"
+    :got (bytes-of tracked-set test-cljc) :want 23688}
+   {:what "deftest の総数 = README.md と quickstart が引用する 46 テスト"
+    :got deftest-n :want 46}
+   {:what "graph.cljc が CLAUDE.md の言う『外』の 5 ノードを配線している"
+    :got (vec (remove #(str/includes? graph-src (str ":" %)) tail-nodes)) :want []}
+   {:what "CLAUDE.md の org 名が畳まれたまま（README.md が『信用するな』と書く根拠）"
+    :got (count (re-seq #"etzhayyim" (read-tracked tracked-set "CLAUDE.md"))) :want 39}
+   ;; ファイルが 1 本増えたら README.md の冒頭と表が古くなる。数が動いたら
+   ;; 両方を見直させるための主張。
+   {:what "tracked file の総数（README.md 冒頭）"
+    :got (count tracked) :want 39}])
+
+;; ── 出力 ──────────────────────────────────────────────────────────────────
+
+(println (str "SCANNED\t" (count tracked) " tracked file / "
+              (count src-cljc) " src / " (count test-cljc) " test / "
+              deftest-n " deftest / " (count checks) " 主張"))
+
+(doseq [{:keys [what got want]} checks]
+  (let [ok (= got want)]
+    (println (str (if ok "  ok   " "  FAIL ") what))
+    (println (str "         got  " (pr-str got)))
+    (when-not ok (println (str "         want " (pr-str want))))))
+
+(if (every? (fn [{:keys [got want]}] (= got want)) checks)
+  (do (println (str "PASS — README.md の " (count checks) " 個の主張は今日も成り立つ"))
+      (js/process.exit 0))
+  (do (println "FAIL — README.md が事実と食い違っている。"
+               "実装が進んだのなら README.md を直すこと（検査を緩めるのではなく）")
+      (js/process.exit 1)))
