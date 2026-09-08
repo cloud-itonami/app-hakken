@@ -5,7 +5,7 @@
   kaimono-review / okaimono / kotoba). Here every network edge is an injectable
   dynamic var, so the pipeline topology + the pure decision logic (phase_router,
   target_price, quality estimate, phase_promotion thresholds) verify offline."
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.lang.text] [clojure.test :refer [deftest is testing]]
             [langgraph.graph :as g]
             [lg-hakken.server :as server]
             [lg-hakken.graph :as graph]
@@ -143,7 +143,7 @@
   (let [txs (atom [])
         upds (atom [])]
     (with-redefs [kd/*dm-q* (fn [q _]
-                              (if (clojure.string/includes? q "dropship")
+                              (if (kotoba.lang.text/includes? q "dropship")
                                 [["sku:1" "ok:1" "42" "0.02"]]     ; orders 42≥30, rr<5%
                                 [["sku:2" "ok:2" "350000" "0.01" "0.7"]]))
                   kd/*dm-transact* (fn [tx _] (swap! txs conj tx) {:tx_cid "t"})]
@@ -151,14 +151,14 @@
         (let [out (phase-promotion/phase-promotion {})]
           (is (= [] (:errors out)))
           (is (= 2 (count @txs)))
-          (is (clojure.string/includes? (first @txs) ":phase/import"))
-          (is (clojure.string/includes? (second @txs) ":phase/oem"))
+          (is (kotoba.lang.text/includes? (first @txs) ":phase/import"))
+          (is (kotoba.lang.text/includes? (second @txs) ":phase/oem"))
           (is (= [["ok:1" "import"] ["ok:2" "oem"]] @upds)))))))
 
 (deftest phase-promotion-skips-below-threshold
   (let [txs (atom [])]
     (with-redefs [kd/*dm-q* (fn [q _]
-                              (if (clojure.string/includes? q "dropship")
+                              (if (kotoba.lang.text/includes? q "dropship")
                                 [["sku:1" "ok:1" "10" "0.02"]]      ; orders 10 < 30
                                 []))
                   kd/*dm-transact* (fn [tx _] (swap! txs conj tx) {:tx_cid "t"})]

@@ -13,7 +13,7 @@
 
   Strings are escaped per EDN spec (\\, \\\", \\n, \\r, \\t). All other chars
   pass through; hakken payloads are assumed valid UTF-8 text."
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (defn kw
   "Keyword shortcut: (kw \"phase\") → :phase, (kw \"db/add\") → :db/add,

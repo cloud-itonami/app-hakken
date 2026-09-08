@@ -4,7 +4,7 @@
 
   Concrete HTTP implementations are supplied only by the host adapter."
   (:require #?(:clj [cheshire.core :as json])
-            [clojure.string :as str]))
+            [kotoba.lang.text :as str]))
 
 (def ^:dynamic *http-get* nil)
 (def ^:dynamic *http-post* nil)
@@ -12,14 +12,14 @@
 (defn assert-service-url [url]
   (let [[_ scheme authority] (or (re-find #"^([A-Za-z][A-Za-z0-9+.\-]*)://([^/?#]+)" (str url))
                                  [nil nil nil])
-        authority (some-> authority str/lower-case)
+        authority (some-> authority str/lower)
         host (some-> authority (str/split #":" 2) first)
-        allowed? (or (and (= "https" (some-> scheme str/lower-case))
+        allowed? (or (and (= "https" (some-> scheme str/lower))
                           host
                           (or (= host "etzhayyim.com")
                               (str/ends-with? host ".etzhayyim.com"))
                           (not (str/includes? authority "@")))
-                     (and (= "http" (some-> scheme str/lower-case))
+                     (and (= "http" (some-> scheme str/lower))
                           (contains? #{"127.0.0.1" "localhost" "[::1]"} host)))]
     (when-not allowed?
       (throw (ex-info "off-fleet XRPC endpoint refused"

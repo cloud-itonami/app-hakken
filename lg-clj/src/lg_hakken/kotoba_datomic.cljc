@@ -17,7 +17,7 @@
   boundary — RisingWave is forbidden; the only persisted target is the kotoba
   Datom log."
   (:require #?(:clj [cheshire.core :as json])
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [lg-hakken.edn :as edn]))
 
 (def default-config {:url "https://kotoba.etzhayyim.com"
@@ -139,12 +139,12 @@
 (defn assert-kotoba-url [url]
   (let [[_ scheme authority] (or (re-find #"^([A-Za-z][A-Za-z0-9+.\-]*)://([^/?#]+)" (str url))
                                  [nil nil nil])
-        authority (some-> authority str/lower-case)
+        authority (some-> authority str/lower)
         host (some-> authority (str/split #":" 2) first)
-        allowed? (or (and (= "https" (some-> scheme str/lower-case))
+        allowed? (or (and (= "https" (some-> scheme str/lower))
                           (= "kotoba.etzhayyim.com" host)
                           (not (str/includes? authority "@")))
-                     (and (= "http" (some-> scheme str/lower-case))
+                     (and (= "http" (some-> scheme str/lower))
                           (contains? #{"127.0.0.1" "localhost" "[::1]"} host)))]
     (when-not allowed?
       (throw (ex-info "off-fleet Kotoba endpoint refused"
