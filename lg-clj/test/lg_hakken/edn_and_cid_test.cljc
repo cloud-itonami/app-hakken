@@ -6,7 +6,7 @@
   the canonical kotoba Datom log: EDN tx-data encoding (what kotoba-server
   parses) and content-address derivation (what makes the same graph label
   resolve identically across nodes)."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [clojure.test :refer [deftest is testing]]
             [lg-hakken.edn :as e]
             [lg-hakken.kotoba-datomic :as kd]
@@ -32,7 +32,7 @@
 (deftest encode-collections-and-map-keyword-keys
   (is (= "[1 2 3]" (e/encode [1 2 3])))
   (is (= "[1 \"x\"]" (e/encode [1 "x"])))
-  (is (clojure.string/starts-with? (e/encode #{1 2}) "#{"))
+  (is (str/starts-with? (e/encode #{1 2}) "#{"))
   ;; string map keys are promoted to keywords; keyword keys pass through
   (is (= "{:phase 1}" (e/encode {"phase" 1})))
   (is (= "{:db/id 5}" (e/encode {:db/id 5}))))
@@ -83,7 +83,7 @@
   (let [big [(e/tx-add "e" "kg/blob" (apply str (repeat 5000 "z")))]
         chunks (e/chunk-tx-data big 1000)]
     (is (= 1 (count chunks)))
-    (is (clojure.string/includes? (first chunks) ":db/add"))))
+    (is (str/includes? (first chunks) ":db/add"))))
 
 ;; ── entity->tx-ops ──────────────────────────────────────────────────────────
 
