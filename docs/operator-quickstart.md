@@ -41,7 +41,7 @@ verifiers).
 
 ```bash
 cd lg-clj
-bb test
+kbb -M:test
 ```
 
 Expected, and what the walk produced:
@@ -73,7 +73,7 @@ The suite is offline. `kotoba.etzhayyim.com` is the *default* write target in
 From the repository root. Both are offline and deterministic.
 
 ```bash
-nbb docs/verify-docs-claims.cljs
+kbb --backend sci docs/verify-docs-claims.cljk
 ```
 
 ```
@@ -87,7 +87,7 @@ no Python originals — because those are the claims that go silently wrong the 
 somebody starts implementing.
 
 ```bash
-nbb docs/verify-custody.cljs
+kbb --backend sci docs/verify-custody.cljk
 ```
 
 ```
@@ -111,7 +111,7 @@ editing the recorded tree — resolving it is an owner decision.
 Add `--origin` to also check the source tree against GitHub (needs network):
 
 ```bash
-nbb docs/verify-custody.cljs --origin
+kbb --backend sci docs/verify-custody.cljk --origin
 ```
 
 The extra line reports `ok 出所 GitHub の実 tree

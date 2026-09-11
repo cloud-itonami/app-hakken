@@ -1,7 +1,7 @@
-#!/usr/bin/env nbb
+#!/usr/bin/env kbb
 ;; verify-docs-claims.cljs — README.md が事実として述べていることを検査する
 ;;
-;;   nbb docs/verify-docs-claims.cljs
+;;   kbb --backend sci docs/verify-docs-claims.cljk
 ;;
 ;; exit 0 = PASS / 1 = FAIL / 3 = 判定できなかった（0 でも 1 でもない）
 ;;

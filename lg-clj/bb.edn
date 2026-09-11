@@ -6,7 +6,7 @@
  ;;   src   — lg-hakken.* namespaces (edn, kotoba-datomic, nodes, graphs, server)
  ;;   test  — lg-hakken.edn-and-cid-test + lg-hakken.graph-test (clojure.test)
  ;;
- ;; Run the suite:  bb test   (or:  bb run_tests.clj)
+ ;; Run the suite:  bb test   (or:  kbb run_tests.cljk)
  :paths ["src" "test"]
  :deps {com-junkawasaki/langchain-clj
         {:git/url "https://github.com/com-junkawasaki/langchain-clj"
