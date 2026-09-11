@@ -118,9 +118,9 @@ Both are offline and deterministic, and both exit **3** when they cannot determi
 answer, so "could not measure" is never reported as "passed".
 
 ```bash
-nbb docs/verify-custody.cljs        # exit 1 today, by the divergence above
-nbb docs/verify-custody.cljs --origin   # also checks the source tree on GitHub
-nbb docs/verify-docs-claims.cljs    # exit 0 — the claims on this page still hold
+kbb --backend sci docs/verify-custody.cljk        # exit 1 today, by the divergence above
+kbb --backend sci docs/verify-custody.cljk --origin   # also checks the source tree on GitHub
+kbb --backend sci docs/verify-docs-claims.cljk    # exit 0 — the claims on this page still hold
 ```
 
 `verify-docs-claims.cljs` pins the assertions of *absence* made above. Those are the
