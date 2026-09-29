@@ -43,5 +43,5 @@ consent capability (ADR-2606011400):
 
 `com.etzhayyim.apps.hakken.*` (operator-directed reverse-DNS of etzhayyim.com, 2026-06-01).
 hakken had no legacy etzhayyim lexicon (vendor wrote kotoba datoms directly), so the namespace is
-native here. See the app `CLAUDE.md` note on `com.etzhayyim.*` vs the `com.etzhayyim.*`
+native here. See the app `AGENTS.md` note on `com.etzhayyim.*` vs the `com.etzhayyim.*`
 record-NSID convention used elsewhere in the repo.

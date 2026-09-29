@@ -11,7 +11,7 @@
 ;; が無い（`kotodama.jsonld` の `component.path` が指す先）、lexicon が 1 本も
 ;; 無い（`PROJECT.jsonld` が Phase 1 で 4 本納品したと書いている）、port 元だと
 ;; 名指しされた Python 3 本が無い。**不在の主張は、実装が進んだ瞬間に静かに
-;; 嘘になる。** この repo では `CLAUDE.md` と `PROJECT.jsonld` と
+;; 嘘になる。** この repo では `AGENTS.md` と `PROJECT.jsonld` と
 ;; `kotodama.jsonld` がまさにそうなった —— 抽出前の monorepo を前提に書かれた
 ;; まま、指す先が消えても誰も赤くならなかった。README.md を同じ道に行かせない
 ;; ための検査。
@@ -92,7 +92,7 @@
 (def ^:private cited-originals
   ["lg/lg_hakken/graph.py" "lg/lg_hakken/edn.py" "lg/lg_hakken/kotoba_datomic.py"])
 
-;; CLAUDE.md が「この surface の外」と書き、graph.cljc が build-discovery に
+;; AGENTS.md が「この surface の外」と書き、graph.cljc が build-discovery に
 ;; 配線している 5 ノード。README.md の矛盾の主張はこの 5 本に依存している。
 (def ^:private tail-nodes
   ["okaimono_dropship" "import_order" "tsukuru_order" "okaimono_register" "social_announce"])
@@ -124,10 +124,10 @@
     :got (bytes-of tracked-set test-cljc) :want 23688}
    {:what "deftest の総数 = README.md と quickstart が引用する 46 テスト"
     :got deftest-n :want 46}
-   {:what "graph.cljc が CLAUDE.md の言う『外』の 5 ノードを配線している"
+   {:what "graph.cljc が AGENTS.md の言う『外』の 5 ノードを配線している"
     :got (vec (remove #(str/includes? graph-src (str ":" %)) tail-nodes)) :want []}
-   {:what "CLAUDE.md の org 名が畳まれたまま（README.md が『信用するな』と書く根拠）"
-    :got (count (re-seq #"etzhayyim" (read-tracked tracked-set "CLAUDE.md"))) :want 39}
+   {:what "AGENTS.md の org 名が畳まれたまま（README.md が『信用するな』と書く根拠）"
+    :got (count (re-seq #"etzhayyim" (read-tracked tracked-set "AGENTS.md"))) :want 39}
    ;; ファイルが 1 本増えたら README.md の冒頭と表が古くなる。数が動いたら
    ;; 両方を見直させるための主張。
    {:what "tracked file の総数（README.md 冒頭）"
