@@ -12,7 +12,7 @@ The name says "発見 / discovery" and nothing else, so: this is the **ingest ha
 product-discovery system. It finds price gaps and records them. It does not sell
 anything.
 
-Read this file before `CLAUDE.md`, `PROJECT.jsonld` or `kotodama.jsonld`. Those three
+Read this file before `AGENTS.md`, `PROJECT.jsonld` or `kotodama.jsonld`. Those three
 were written inside the `etzhayyim/root` monorepo before this directory was extracted,
 and they describe a larger system than the one that arrived here. This file says which
 parts of them you can act on today.
@@ -30,7 +30,7 @@ parts of them you can act on today.
 lg-clj/     the only runnable thing in the repo — 16 .cljc source, 2 .cljc test
 lg/         3 Python files + .gitignore, a remnant of what lg-clj was ported FROM
 kotoba/     2 TypeScript files, an unbuilt @etzhayyim/sdk ingest reference
-CLAUDE.md PROJECT.jsonld   descriptions of the intended system
+AGENTS.md PROJECT.jsonld   descriptions of the intended system
 kotodama.jsonld            actor / deployment manifest
 OWNERS README.edn migration.edn   identity and provenance
 ```
@@ -75,14 +75,14 @@ contract while appearing to fix the description.
   `dispatcher.etzhayyim.com` is also NXDOMAIN. `kotoba.etzhayyim.com` and
   `atproto.etzhayyim.com` do resolve, and `kotoba.etzhayyim.com` is the default write
   target in `lg-clj/src/lg_hakken/kotoba_datomic.cljc`.
-- **`CLAUDE.md` states a boundary the code does not keep.** It says the fulfillment
+- **`AGENTS.md` states a boundary the code does not keep.** It says the fulfillment
   tail "is NOT part of the etzhayyim ingest surface" and names `okaimono_register`,
   dropship, `import_order` and `tsukuru_order` as functions that stay elsewhere.
   `lg-clj/src/lg_hakken/graph.cljc` wires all five of those nodes
   (`okaimono_dropship`, `import_order`, `tsukuru_order`, `okaimono_register`,
   `social_announce`) into `build-discovery` as a compiled graph. The port is faithful
   to the vendor pipeline, which is wider than the boundary the document draws.
-- **`CLAUDE.md` has had its organisation names collapsed.** "etzhayyim" appears 39
+- **`AGENTS.md` has had its organisation names collapsed.** "etzhayyim" appears 39
   times, including on both sides of a sentence that has to name two different parties
   to mean anything: the functions "move to the etzhayyim product front" while the
   regulated tail "stays a etzhayyim function". The same collapse makes its NSID note

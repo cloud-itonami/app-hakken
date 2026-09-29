@@ -23,7 +23,7 @@
     {
       "name": "Phase 1 — etzhayyim scaffold + ingest-core kotoba (this commit)",
       "status": "In Progress",
-      "description": "CLAUDE.md + OWNERS + PROJECT.jsonld + kotodama.jsonld + 4 com.etzhayyim.apps.hakken.* lexicons + kotoba ingest reference (brandedProduct + supplierCandidate write path via @etzhayyim/sdk e.write). Vendor hakken.etzhayyim.com unchanged. ADR-2606011700."
+      "description": "AGENTS.md + OWNERS + PROJECT.jsonld + kotodama.jsonld + 4 com.etzhayyim.apps.hakken.* lexicons + kotoba ingest reference (brandedProduct + supplierCandidate write path via @etzhayyim/sdk e.write). Vendor hakken.etzhayyim.com unchanged. ADR-2606011700."
     },
     {
       "name": "Phase 2 — discovery pipeline rehome (trend_scan / gap_analysis / supplier_search)",
